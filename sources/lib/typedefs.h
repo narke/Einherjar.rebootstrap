@@ -18,6 +18,8 @@
 #define true   1
 
 typedef uint8_t bool;
+typedef int32_t inr_t;
+typedef uint32_t uintptr_t;
 
 #endif
 
