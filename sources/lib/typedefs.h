@@ -5,9 +5,7 @@
  * found in the LICENSE file.
  */
 
-
-#ifndef _TYPEDEFS_H_
-#define _TYPEDEFS_H_
+#pragma once
 
 #include "common.h"
 #include "types.h"
@@ -20,6 +18,3 @@
 typedef uint8_t bool;
 typedef int32_t inr_t;
 typedef uint32_t uintptr_t;
-
-#endif
-

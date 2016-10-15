@@ -10,7 +10,7 @@
 #include "typedefs.h"
 #include "stdarg.h"
 
-static void 
+static void
 itoa(int value, char *str, uint8_t base)
 {
 	uint8_t i = 0;
@@ -19,11 +19,11 @@ itoa(int value, char *str, uint8_t base)
 	uint8_t is_negative = 0;
 	uint8_t remainder;
 	char tmp;
-	
+
 	// Convert 0
 	if (value == 0)
 		str[i++] = '0';
-	
+
 	// Handle negative decimal values
 	if (base == 'd' && value < 0)
 	{
@@ -32,7 +32,7 @@ itoa(int value, char *str, uint8_t base)
 	}
 	else if (base == 'x') // Handle hex values
 		divisor = 16;
-	
+
 	// Convert the value into the corresponding base
 	while (value > 0)
 	{
@@ -40,18 +40,18 @@ itoa(int value, char *str, uint8_t base)
 		str[i++] = (remainder < 10) ? remainder + '0' : remainder + 'a' - 10;
 		value = value / divisor;
 	}
-	
+
 	// Add '-' to negative numbers now, to reverse that later
 	if (base == 'd' && is_negative)
 		str[i++] = '-';
-	
+
 	// Handle hex values
 	if (base == 'x')
 	{
 		str[i++] = 'x';
 		str[i++] = '0';
 	}
-	
+
 	// Finalizing by ending the string and reversing it
 	str[i] = '\0';
 	for (i = i-1, j = 0; j < i; i--, j++)

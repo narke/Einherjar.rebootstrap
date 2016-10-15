@@ -5,8 +5,7 @@
  * found in the LICENSE file.
  */
 
-#ifndef _OFW_H_
-#define _OFW_H_
+#pragma once
 
 #include <lib/typedefs.h>
 #include <lib/stdarg.h>
@@ -35,26 +34,17 @@ typedef struct {
 } ofw_args_t;
 
 
-extern uintptr_t ofw_cif;
-
 extern phandle ofw_chosen;
 extern ihandle ofw_stdout;
 
-extern void ofw_init(void);
+void ofw_init(void);
 
-extern void ofw_putchar(const char);
+void ofw_putchar(const char);
 
-extern ofw_arg_t ofw_get_property(const phandle, const char *, void *,
-    const size_t);
+ofw_arg_t ofw_get_property(const phandle, const char *, void *, const size_t);
 
-extern phandle ofw_find_device(const char *);
+phandle ofw_find_device(const char *);
 
+ofw_arg_t ofw(ofw_args_t *);
 
-extern ofw_arg_t ofw(ofw_args_t *);
-extern ofw_arg_t ofw_call(const char *, const size_t, const size_t, ofw_arg_t *,
-    ...);
-
-
-
-
-#endif
+ofw_arg_t ofw_call(const char *, const size_t, const size_t, ofw_arg_t *, ...);

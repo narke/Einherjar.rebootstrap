@@ -5,13 +5,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef _PRINTF_H_
-#define _PRINTF_H_
-
+#pragma once
 
 #define EOF  (-1)
 
 void printf(const char *format, ...);
-
-#endif
-

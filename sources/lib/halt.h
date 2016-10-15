@@ -5,10 +5,6 @@
  * found in the LICENSE file.
  */
 
+#pragma once
 
-#ifndef _HALT_H_
-#define _HALT_H_
-
-extern void halt(void) __attribute__((noreturn));
-
-#endif // _HALT_H_
+void halt(void) __attribute__((noreturn));

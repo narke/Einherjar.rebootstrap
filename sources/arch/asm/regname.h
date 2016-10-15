@@ -5,8 +5,7 @@
  * found in the LICENSE file.
  */
 
-#ifndef _REGNAME_H_
-#define _REGNAME_H_
+#pragma once
 
 /* Condition Register Bit Fields */
 #define cr0  0
@@ -201,5 +200,3 @@
 #define hid0_dce   (1 << 14)
 #define hid0_icfi  (1 << 11)
 #define hid0_dci   (1 << 10)
-
-#endif
