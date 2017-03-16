@@ -13,8 +13,13 @@ LDFLAGS=-melf32ppc -n --warn-common --strip-all
 MAPS=yaboot/boot/maps
 CDROM_NAME=einherjar.iso
 
-OBJECTS=boot.o lib/printf.o openfirmware/ofw.o \
-	arch/ppc32/src/exceptions.o \
+OBJECTS=boot.o				\
+	lib/printf.o			\
+	openfirmware/ofw.o		\
+	arch/ppc32/src/exceptions.o	\
+	arch/ppc32/src/memory/frame.o	\
+	generic/src/memory/frame.o	\
+	arch/ppc32/src/ppc32.o          \
 	main.o
 EXECUTABLE=yggdrasil.elf
 
