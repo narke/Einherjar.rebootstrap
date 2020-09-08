@@ -35,7 +35,7 @@ kernel_image_start:
 
 	# r3 contains physical address of bootinfo_t
 	addis r3, r3, 0x8000
-	bl arch_pre_main
+	bl einherjar
 
 halt:
 	b halt
