@@ -5,6 +5,7 @@ SECTIONS {
 	.text : {
 		*(BOOTSTRAP);
 		*(REALMODE);
+		*(.vectors);
 		*(.text);
 	}
 	.data : {

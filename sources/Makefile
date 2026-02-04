@@ -4,9 +4,8 @@ PWD := $(shell pwd)
 CFLAGS=-m32 -ffreestanding -fno-builtin -nostdinc -nostdlib -fno-exceptions \
 	   -fno-leading-underscore -mcpu=powerpc -msoft-float -O3 \
 	   -fexec-charset=UTF-8 -fwide-exec-charset=UTF-32BE \
-	   -finput-charset=UTF-8 -std=gnu99 -pipe -Wall -Wextra -Werror \
-	   -Wno-unused-parameter -Wmissing-prototypes \
-	   -Werror-implicit-function-declaration -Wwrite-strings \
+	   -finput-charset=UTF-8 -std=gnu99 -pipe -Wall -Wextra \
+	   -Wwrite-strings \
 	   -Igeneric/include -Iarch/ppc32/include -I$(PWD)
 LDFLAGS=-melf32ppc -n --warn-common --strip-all
 
@@ -17,6 +16,7 @@ OBJECTS=boot.o				\
 	lib/printf.o			\
 	openfirmware/ofw.o		\
 	arch/ppc32/src/exceptions.o	\
+	arch/ppc32/src/interrupts.o	\
 	main.o
 EXECUTABLE=yggdrasil.elf
 

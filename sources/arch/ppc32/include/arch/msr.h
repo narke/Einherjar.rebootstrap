@@ -10,6 +10,7 @@
 /* MSR bits */
 #define MSR_DR  (1 << 4)
 #define MSR_IR  (1 << 5)
+#define MSR_IP  (1 << 25)  /* 0 = vectors at 0x0, 1 = vectors at 0xfffff000 */
 #define MSR_FE1 (1 << 8)
 #define MSR_FE0 (1 << 11)
 #define MSR_FP  (1 << 13)
