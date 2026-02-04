@@ -30,6 +30,9 @@
 
 static uint32_t decrementer_value;
 
+/** Ticks since boot; updated by decrementer handler. Main prints when it changes. */
+volatile uint32_t decrementer_ticks;
+
 void decrementer_start(uint32_t val)
 {
 	decrementer_value = val;
@@ -44,15 +47,14 @@ void decrementer_restart(void)
 	);
 }
 
-static void exception_decrementer(unsigned int n, istate_t *istate)
+/** Called from the decrementer exception handler (ASM) on each timer tick. */
+void decrementer_tick(void)
 {
+	decrementer_ticks++;
 	decrementer_restart();
-	//clock();
 }
 
 void interrupt_init(void)
 {
-	//exc_register(VECTOR_DECREMENTER, "timer", true,
-	    //exception_decrementer);
 }
 

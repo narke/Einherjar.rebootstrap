@@ -18,6 +18,12 @@ start:
 	stw r5, 0(r4)
 
 	bl ofw_init
+
+	# Set up interrupt stack in SPRG0 (use kernel_stack)
+	lis r4, kernel_stack@ha
+	addi r4, r4, kernel_stack@l
+	mtsprg0 r4
+
 	bl einherjar
 
 .text

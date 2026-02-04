@@ -46,3 +46,6 @@ extern void decrementer_start(uint32_t);
 extern void decrementer_restart(void);
 extern void interrupt_init(void);
 extern void extint_handler(unsigned int, istate_t *);
+
+/** Number of decrementer ticks since boot (updated in IRQ, read from main). */
+extern volatile uint32_t decrementer_ticks;
