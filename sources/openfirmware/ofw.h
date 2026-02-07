@@ -98,10 +98,21 @@ typedef struct
 
 extern phandle ofw_chosen;
 extern ihandle ofw_stdout;
+extern ihandle ofw_stdin;
+
+/** Non-zero when OFW client interface is being called (prevents reentrant calls). */
+extern volatile uint32_t ofw_busy;
 
 void ofw_init(void);
 
 void ofw_putchar(const char);
+
+/**
+ * Non-blocking read of one character from OFW stdin (keyboard).
+ * Returns the character (0-255), or -1 if no input available or OFW is busy.
+ * Safe to call from interrupt context: if ofw_busy is set, returns -1 immediately.
+ */
+int ofw_getchar(void);
 
 ofw_arg_t ofw_get_property(const phandle, const char *, void *, const size_t);
 

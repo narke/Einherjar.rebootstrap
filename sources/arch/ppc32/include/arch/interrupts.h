@@ -45,7 +45,13 @@
 extern void decrementer_start(uint32_t);
 extern void decrementer_restart(void);
 extern void interrupt_init(void);
-extern void extint_handler(unsigned int, istate_t *);
+
+/**
+ * External interrupt handler - called from vector 0x500 exception handler.
+ * This is the dispatch point for all hardware IRQs on PowerPC Macs,
+ * including the keyboard (ADB via CUDA/PMU through the PIC).
+ */
+extern void external_interrupt_handler(void);
 
 /** Number of decrementer ticks since boot (updated in IRQ, read from main). */
 extern volatile uint32_t decrementer_ticks;

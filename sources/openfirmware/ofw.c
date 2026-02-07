@@ -5,6 +5,7 @@
  * found in the LICENSE file.
  */
 
+#include <arch/asm.h>
 #include <lib/printf.h>
 #include <lib/typedefs.h>
 #include <lib/halt.h>
@@ -20,10 +21,14 @@ typedef int (*ofw_entry_t)(ofw_args_t *args);
 uintptr_t ofw_cif;
 phandle ofw_chosen;
 ihandle ofw_stdout;
+ihandle ofw_stdin;
 phandle ofw_root;
 ihandle ofw_mmu;
 ihandle ofw_memory_prop;
 phandle ofw_memory;
+
+/** Non-zero when OFW client interface is being called (prevents reentrant calls). */
+volatile uint32_t ofw_busy;
 
 
 void
@@ -36,6 +41,10 @@ ofw_init(void)
 	if ((ofw_ret_t) ofw_get_property(ofw_chosen, "stdout", &ofw_stdout,
 				sizeof(ofw_stdout)) <= 0)
 		ofw_stdout = 0;
+
+	if ((ofw_ret_t) ofw_get_property(ofw_chosen, "stdin", &ofw_stdin,
+				sizeof(ofw_stdin)) <= 0)
+		ofw_stdin = 0;
 
 	ofw_root = ofw_find_device("/");
 	if (ofw_root == (phandle) -1)
@@ -135,9 +144,44 @@ ofw_putchar(const char ch)
 }
 
 
+int
+ofw_getchar(void)
+{
+	char ch;
+
+	/*
+	 * If stdin is not available, or OFW is already being called
+	 * (e.g. we're in a timer interrupt while printf is in progress),
+	 * return immediately to avoid reentrancy issues.
+	 */
+	if (ofw_stdin == 0 || ofw_busy)
+		return -1;
+
+	ofw_arg_t actual = ofw_call("read", 3, 1, NULL, ofw_stdin, &ch, 1);
+
+	if ((int)actual > 0)
+		return (unsigned char)ch;
+
+	return -1;
+}
+
+
 ofw_arg_t
 ofw(ofw_args_t *args)
 {
-	return ((ofw_entry_t)ofw_cif)(args);
+	ofw_arg_t ret;
+
+	/*
+	 * Disable interrupts around OFW calls.  OFW is not reentrant:
+	 * if our exception handler fires during an OFW call it could
+	 * corrupt OFW's internal state.
+	 */
+	ipl_t ipl = interrupts_disable();
+	ofw_busy = 1;
+	ret = ((ofw_entry_t)ofw_cif)(args);
+	ofw_busy = 0;
+	interrupts_restore(ipl);
+
+	return ret;
 }
 

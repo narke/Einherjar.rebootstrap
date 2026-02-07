@@ -30,7 +30,7 @@
 
 static uint32_t decrementer_value;
 
-/** Ticks since boot; updated by decrementer handler. Main prints when it changes. */
+/** Ticks since boot; updated by decrementer handler. */
 volatile uint32_t decrementer_ticks;
 
 void decrementer_start(uint32_t val)
@@ -47,11 +47,22 @@ void decrementer_restart(void)
 	);
 }
 
-/** Called from the decrementer exception handler (ASM) on each timer tick. */
+/**
+ * Called from the decrementer exception handler (ASM) on each timer tick.
+ * Only increments the tick counter and restarts the decrementer.
+ *
+ * NOTE: Do NOT call Open Firmware from here. OFW is not reentrant and
+ * does not work reliably from exception context (MSR[EE]=0).
+ */
 void decrementer_tick(void)
 {
 	decrementer_ticks++;
 	decrementer_restart();
+}
+
+/** Stub for external interrupt vector 0x500. */
+void external_interrupt_handler(void)
+{
 }
 
 void interrupt_init(void)
