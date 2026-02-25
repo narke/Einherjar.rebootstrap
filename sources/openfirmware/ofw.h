@@ -106,6 +106,10 @@ extern volatile uint32_t ofw_busy;
 void ofw_init(void);
 
 void ofw_putchar(const char);
+int ofw_call_method0(const char *method, ihandle instance);
+int ofw_call_method1(const char *method, ihandle instance, ofw_arg_t arg0);
+int ofw_call_method2(const char *method, ihandle instance, ofw_arg_t arg0,
+    ofw_arg_t arg1);
 
 /**
  * Non-blocking read of one character from OFW stdin (keyboard).

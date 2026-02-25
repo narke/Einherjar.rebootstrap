@@ -10,6 +10,7 @@
 #include <arch/msr.h>
 #include <lib/printf.h>
 #include <lib/types.h>
+#include <drivers/console.h>
 #include <openfirmware/ofw.h>
 
 void einherjar(void);
@@ -17,6 +18,8 @@ void einherjar(void);
 void
 einherjar(void)
 {
+	console_init();
+
 	/*
 	 * Do NOT install our exception vectors yet: Open Firmware needs
 	 * its own vectors at 0x0 (or 0xFFFFF000) to handle hardware
@@ -28,8 +31,8 @@ einherjar(void)
 	 * OFW for I/O.
 	 */
 
-	printf("Einherjar kernel ready.\n");
-	printf("> ");
+	console_puts("Einherjar kernel ready.\n");
+	console_puts("> ");
 
 	/*
 	 * Main loop: poll the keyboard via Open Firmware stdin.
@@ -44,13 +47,13 @@ einherjar(void)
 			continue;
 
 		if (ch == '\r' || ch == '\n') {
-			printf("\n> ");
+			console_puts("\n> ");
 		} else if (ch == 0x7f || ch == '\b') {
-			ofw_putchar('\b');
-			ofw_putchar(' ');
-			ofw_putchar('\b');
+			console_putchar('\b');
+			console_putchar(' ');
+			console_putchar('\b');
 		} else {
-			ofw_putchar((char)ch);
+			console_putchar((char)ch);
 		}
 	}
 }

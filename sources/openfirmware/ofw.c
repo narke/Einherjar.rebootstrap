@@ -143,6 +143,32 @@ ofw_putchar(const char ch)
 	ofw_call("write", 3, 1, NULL, ofw_stdout, &ch, 1);
 }
 
+int
+ofw_call_method0(const char *method, ihandle instance)
+{
+	if (instance == 0)
+		return -1;
+	return (int)ofw_call("call-method", 2, 1, NULL, method, instance);
+}
+
+int
+ofw_call_method1(const char *method, ihandle instance, ofw_arg_t arg0)
+{
+	if (instance == 0)
+		return -1;
+	return (int)ofw_call("call-method", 3, 1, NULL, method, instance, arg0);
+}
+
+int
+ofw_call_method2(const char *method, ihandle instance, ofw_arg_t arg0,
+    ofw_arg_t arg1)
+{
+	if (instance == 0)
+		return -1;
+	return (int)ofw_call("call-method", 4, 1, NULL, method, instance, arg0,
+	    arg1);
+}
+
 
 int
 ofw_getchar(void)

@@ -17,6 +17,7 @@ OBJECTS=boot.o				\
 	openfirmware/ofw.o		\
 	arch/ppc32/src/exceptions.o	\
 	arch/ppc32/src/interrupts.o	\
+	drivers/console.o		\
 	main.o
 EXECUTABLE=yggdrasil.elf
 
