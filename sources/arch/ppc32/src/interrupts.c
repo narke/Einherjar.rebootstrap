@@ -2,6 +2,10 @@
  * Copyright (c) 2006 Martin Decky
  * All rights reserved.
  *
+ * Decrementer and external IRQ handlers for future native vector install.
+ * Not linked in the current OFW-based build (see Makefile).
+ * Do not call Open Firmware from these handlers until OFW I/O is replaced.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -33,9 +37,9 @@ static uint32_t decrementer_value;
 /** Ticks since boot; updated by decrementer handler. */
 volatile uint32_t decrementer_ticks;
 
-void decrementer_start(uint32_t val)
+void decrementer_start(uint32_t value)
 {
-	decrementer_value = val;
+	decrementer_value = value;
 	decrementer_restart();
 }
 

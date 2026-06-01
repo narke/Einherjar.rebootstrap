@@ -4,40 +4,57 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  *
- * Keyboard driver for PowerPC Macs.
+ * Keyboard driver for PowerPC Macs (future path, not linked in current build).
  *
- * Input is obtained via OpenFirmware's stdin "read" service, polled
- * periodically from the decrementer interrupt (vector 0x900).
- * Characters are stored in a lock-free ring buffer (single producer
- * from interrupt context, single consumer from main context).
+ * Intended design: poll OFW stdin from the decrementer handler (vector 0x900)
+ * into a ring buffer; external IRQ (vector 0x500) is reserved for native ADB/PIC.
  *
- * The external interrupt handler (vector 0x500) is set up as the
- * proper interrupt path for future native ADB keyboard support
- * when PIC and CUDA/PMU drivers are implemented.
+ * Active boot today uses ofw_getchar() directly in main.c. Do not call OFW from
+ * IRQ until vectors replace OFW and reentrancy is fully understood.
  */
 
 #include <lib/printf.h>
 #include <lib/typedefs.h>
-#include <lib/types.h>
 #include <openfirmware/ofw.h>
 #include <drivers/keyboard.h>
 
 #define KBD_BUFFER_SIZE  64
 
 /*
- * Lock-free ring buffer for keyboard input.
- *
- * Single producer (interrupt context via keyboard_poll) writes at kbd_write_pos.
- * Single consumer (main context via keyboard_getchar) reads at kbd_read_pos.
- *
- * Buffer is empty when read_pos == write_pos.
- * Buffer is full when (write_pos + 1) % SIZE == read_pos.
- * One slot is always unused to distinguish empty from full.
+ * Lock-free ring buffer: single producer (keyboard_poll), single consumer
+ * (keyboard_getchar). One slot is always unused to distinguish empty from full.
  */
 static volatile char     kbd_buffer[KBD_BUFFER_SIZE];
 static volatile uint32_t kbd_write_pos;
 static volatile uint32_t kbd_read_pos;
 
+static uint32_t
+kbd_next_pos(uint32_t pos)
+{
+	return (pos + 1) % KBD_BUFFER_SIZE;
+}
+
+static int
+kbd_buffer_empty(void)
+{
+	return kbd_read_pos == kbd_write_pos;
+}
+
+static int
+kbd_buffer_full(void)
+{
+	return kbd_next_pos(kbd_write_pos) == kbd_read_pos;
+}
+
+static void
+kbd_buffer_push(char ch)
+{
+	if (kbd_buffer_full())
+		kbd_read_pos = kbd_next_pos(kbd_read_pos);
+
+	kbd_buffer[kbd_write_pos] = ch;
+	kbd_write_pos = kbd_next_pos(kbd_write_pos);
+}
 
 void
 keyboard_init(void)
@@ -51,46 +68,35 @@ keyboard_init(void)
 		printf("Keyboard: initialized (OpenFirmware stdin)\n");
 }
 
-
 void
 keyboard_poll(void)
 {
 	int ch;
 
 	/*
-	 * Read all available characters from OFW stdin.
-	 * ofw_getchar() is safe from interrupt context: it checks the
-	 * ofw_busy flag and returns -1 if OFW is currently in use.
+	 * Experimental/future: OFW from IRQ is guarded by ofw_busy only.
+	 * interrupts.c explicitly warns against calling OFW from decrementer_tick.
 	 */
-	while ((ch = ofw_getchar()) >= 0) {
-		uint32_t next = (kbd_write_pos + 1) % KBD_BUFFER_SIZE;
-
-		if (next == kbd_read_pos) {
-			/* Buffer full, discard oldest character */
-			kbd_read_pos = (kbd_read_pos + 1) % KBD_BUFFER_SIZE;
-		}
-
-		kbd_buffer[kbd_write_pos] = (char)ch;
-		kbd_write_pos = next;
-	}
+	while ((ch = ofw_getchar()) >= 0)
+		kbd_buffer_push((char)ch);
 }
-
 
 int
 keyboard_getchar(void)
 {
-	if (kbd_read_pos == kbd_write_pos)
+	char ch;
+
+	if (kbd_buffer_empty())
 		return -1;
 
-	char ch = kbd_buffer[kbd_read_pos];
-	kbd_read_pos = (kbd_read_pos + 1) % KBD_BUFFER_SIZE;
+	ch = kbd_buffer[kbd_read_pos];
+	kbd_read_pos = kbd_next_pos(kbd_read_pos);
 
 	return (unsigned char)ch;
 }
 
-
 int
 keyboard_has_data(void)
 {
-	return kbd_read_pos != kbd_write_pos;
+	return !kbd_buffer_empty();
 }

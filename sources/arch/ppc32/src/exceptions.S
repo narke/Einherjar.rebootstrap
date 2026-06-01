@@ -1,7 +1,8 @@
 /*
  * Exception vectors for PowerPC 32-bit (Book III-S).
- * This section must be copied to physical 0x0 (or 0xfffff000 if MSR[IP]=1)
- * at boot so the CPU jumps here on exception (0x500 = external, 0x900 = decrementer).
+ * Future path: copy this section to 0x0 (or 0xfffff000 if MSR[IP]=1) when
+ * native IRQ replaces OFW. Not linked in the current build (see Makefile).
+ * 0x500 = external, 0x900 = decrementer.
  */
 #include <arch/asm/regname.h>
 
