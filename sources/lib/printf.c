@@ -24,45 +24,66 @@ print_string(const char *s)
 }
 
 static void
-format_int(int value, char *str, char base)
+reverse_string(char *str, uint8_t len)
 {
-	uint8_t i = 0;
-	uint8_t j = 0;
-	uint8_t divisor = 10;
-	uint8_t is_negative = 0;
-	uint8_t remainder;
+	uint8_t i, j;
 	char tmp;
 
-	if (value == 0)
-		str[i++] = '0';
-
-	if (base == 'd' && value < 0) {
-		is_negative = 1;
-		value = -value;
-	} else if (base == 'x') {
-		divisor = 16;
-	}
-
-	while (value > 0) {
-		remainder = value % divisor;
-		str[i++] = (remainder < 10) ? remainder + '0' : remainder + 'a' - 10;
-		value = value / divisor;
-	}
-
-	if (base == 'd' && is_negative)
-		str[i++] = '-';
-
-	if (base == 'x') {
-		str[i++] = 'x';
-		str[i++] = '0';
-	}
-
-	str[i] = '\0';
-	for (i = i - 1, j = 0; j < i; i--, j++) {
+	for (i = len - 1, j = 0; j < i; i--, j++) {
 		tmp = str[j];
 		str[j] = str[i];
 		str[i] = tmp;
 	}
+}
+
+static void
+format_dec(int value, char *str)
+{
+	uint8_t i = 0;
+	uint8_t is_negative = 0;
+	uint8_t remainder;
+
+	if (value == 0)
+		str[i++] = '0';
+
+	if (value < 0) {
+		is_negative = 1;
+		value = -value;
+	}
+
+	while (value > 0) {
+		remainder = value % 10;
+		str[i++] = remainder + '0';
+		value = value / 10;
+	}
+
+	if (is_negative)
+		str[i++] = '-';
+
+	str[i] = '\0';
+	reverse_string(str, i);
+}
+
+static void
+format_hex(unsigned int value, char *str)
+{
+	uint8_t i = 0;
+	uint8_t remainder;
+
+	if (value == 0)
+		str[i++] = '0';
+
+	while (value > 0) {
+		remainder = value % 16;
+		str[i++] = (remainder < 10) ? remainder + '0' : remainder + 'a' - 10;
+		value = value / 16;
+	}
+
+	str[i++] = 'x';
+	str[i++] = '0';
+
+	str[i] = '\0';
+	reverse_string(str, i);
 }
 
 static void
@@ -76,12 +97,12 @@ print_format(char spec, va_list args)
 		break;
 
 	case 'd':
-		format_int(va_arg(args, int), buffer, 'd');
+		format_dec(va_arg(args, int), buffer);
 		print_string(buffer);
 		break;
 
 	case 'x':
-		format_int((int)va_arg(args, unsigned int), buffer, 'x');
+		format_hex(va_arg(args, unsigned int), buffer);
 		print_string(buffer);
 		break;
 
