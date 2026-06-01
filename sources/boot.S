@@ -38,3 +38,5 @@ halt:
 kernel_stack_bottom:
 	.space KERNEL_STACK_SIZE
 kernel_stack:
+
+.section .note.GNU-stack,"",@progbits
