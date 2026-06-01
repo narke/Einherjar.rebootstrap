@@ -43,6 +43,9 @@ ofw_call_collect_returns(ofw_args_t *args, const size_t nargs, const size_t nret
 {
 	size_t i;
 
+	if (rets == NULL)
+		return;
+
 	for (i = 1; i < nret; i++)
 		rets[i - 1] = args->args[i + nargs];
 }
@@ -70,6 +73,13 @@ ofw_init(void)
 	ofw_stdin = ofw_chosen_ihandle("stdin");
 }
 
+/*
+ * Invoke an Open Firmware service.
+ *
+ * Return value: primary OFW return in args[nargs] (also returned by this function).
+ * rets: optional buffer for additional returns when nret > 1; may be NULL when
+ *       the caller only needs the primary return (nret == 1).
+ */
 ofw_arg_t
 ofw_call(const char *service, const size_t nargs, const size_t nret,
     ofw_arg_t *rets, ...)
