@@ -18,13 +18,18 @@ CDROM_NAME=einherjar.iso
 EXECUTABLE=yggdrasil.elf
 KERNEL_IMAGE=$(BOOT_DIR)/$(EXECUTABLE)
 
-# Future (not linked until native PIC/vectors replace OFW I/O):
-#   arch/ppc32/src/exceptions.o  arch/ppc32/src/interrupts.o  drivers/keyboard.o
+# Active kernel objects (Open Firmware boot path; see main.c).
 OBJECTS=boot.o				\
 	lib/printf.o			\
 	openfirmware/ofw.o		\
 	drivers/console.o		\
 	main.o
+
+# Future native IRQ/keyboard path — not linked by default.
+# Prerequisites: arch/ppc32/README-future.md
+FUTURE_OBJECTS=arch/ppc32/src/exceptions.o	\
+		arch/ppc32/src/interrupts.o		\
+		drivers/keyboard.o
 
 .PHONY: all cdrom clean
 
