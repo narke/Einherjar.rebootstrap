@@ -11,7 +11,20 @@
 #include "stdarg.h"
 
 static void
-itoa(int value, char *str, uint8_t base)
+print_char(char c)
+{
+	ofw_putchar(c);
+}
+
+static void
+print_string(const char *s)
+{
+	while (*s)
+		ofw_putchar(*s++);
+}
+
+static void
+format_int(int value, char *str, char base)
 {
 	uint8_t i = 0;
 	uint8_t j = 0;
@@ -20,104 +33,82 @@ itoa(int value, char *str, uint8_t base)
 	uint8_t remainder;
 	char tmp;
 
-	// Convert 0
 	if (value == 0)
 		str[i++] = '0';
 
-	// Handle negative decimal values
-	if (base == 'd' && value < 0)
-	{
+	if (base == 'd' && value < 0) {
 		is_negative = 1;
 		value = -value;
-	}
-	else if (base == 'x') // Handle hex values
+	} else if (base == 'x') {
 		divisor = 16;
+	}
 
-	// Convert the value into the corresponding base
-	while (value > 0)
-	{
+	while (value > 0) {
 		remainder = value % divisor;
 		str[i++] = (remainder < 10) ? remainder + '0' : remainder + 'a' - 10;
 		value = value / divisor;
 	}
 
-	// Add '-' to negative numbers now, to reverse that later
 	if (base == 'd' && is_negative)
 		str[i++] = '-';
 
-	// Handle hex values
-	if (base == 'x')
-	{
+	if (base == 'x') {
 		str[i++] = 'x';
 		str[i++] = '0';
 	}
 
-	// Finalizing by ending the string and reversing it
 	str[i] = '\0';
-	for (i = i-1, j = 0; j < i; i--, j++)
-	{
+	for (i = i - 1, j = 0; j < i; i--, j++) {
 		tmp = str[j];
 		str[j] = str[i];
 		str[i] = tmp;
 	}
 }
 
+static void
+print_format(char spec, va_list args)
+{
+	char buffer[20];
 
+	switch (spec) {
+	case 'c':
+		print_char((char)va_arg(args, int));
+		break;
+
+	case 'd':
+		format_int(va_arg(args, int), buffer, 'd');
+		print_string(buffer);
+		break;
+
+	case 'x':
+		format_int((int)va_arg(args, unsigned int), buffer, 'x');
+		print_string(buffer);
+		break;
+
+	case 's':
+		print_string(va_arg(args, char *));
+		break;
+
+	case '%':
+		print_char('%');
+		break;
+
+	default:
+		break;
+	}
+}
 
 static void
 vprintf(const char *fmt, va_list args)
 {
-	int d;
-	unsigned int u;
-	char *s;
-	char buffer[20];
-	int i;
-
-	while (*fmt)
-	{
-		if (*fmt != '%')
-		{
+	while (*fmt) {
+		if (*fmt != '%') {
 			ofw_putchar(*fmt++);
 			continue;
 		}
 
-		fmt++; // skip '%'
-
-		switch(*fmt++)
-		{
-			case 'c':
-				d = va_arg(args, int);
-				ofw_putchar(d);
-				break;
-
-			case 'd':
-				d = va_arg(args, int);
-				itoa(d, buffer, 'd');
-				for (i = 0; buffer[i] != '\0'; i++)
-					ofw_putchar(buffer[i]);
-				break;
-
-			case 'x':
-				u = va_arg(args, unsigned int);
-				itoa(u, buffer, 'x');
-				for (i = 0; buffer[i] != '\0'; i++)
-					ofw_putchar(buffer[i]);
-				break;
-
-			case 's':
-				s = va_arg(args, char *);
-				while (*s)
-					ofw_putchar(*s++);
-				break;
-
-			case '%':
-				ofw_putchar('%');
-				break;
-
-			default:
-				;
-
-		}
+		fmt++;
+		print_format(*fmt++, args);
 	}
 }
 
