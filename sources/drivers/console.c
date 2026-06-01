@@ -34,12 +34,12 @@ typedef struct {
 
 static fb_console_t fb;
 
-static uint32_t cursor_px(void)
+static uint32_t fb_cursor_px(void)
 {
 	return fb.cx * GLYPH_W;
 }
 
-static uint32_t cursor_py(void)
+static uint32_t fb_cursor_py(void)
 {
 	return fb.cy * GLYPH_H;
 }
@@ -62,7 +62,7 @@ static uint32_t color_to_pixel(uint8_t r, uint8_t g, uint8_t b)
 	return (r << 16) | (g << 8) | b;
 }
 
-static void put_pixel(uint32_t x, uint32_t y, uint32_t pix)
+static void fb_put_pixel(uint32_t x, uint32_t y, uint32_t pix)
 {
 	uint8_t *p;
 
@@ -93,17 +93,17 @@ static void put_pixel(uint32_t x, uint32_t y, uint32_t pix)
 	((uint32_t *)p)[x] = pix;
 }
 
-static void fill_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color)
+static void fb_fill_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color)
 {
 	uint32_t yy, xx;
 
 	for (yy = 0; yy < h; yy++) {
 		for (xx = 0; xx < w; xx++)
-			put_pixel(x + xx, y + yy, color);
+			fb_put_pixel(x + xx, y + yy, color);
 	}
 }
 
-static void draw_glyph(char c, uint32_t px, uint32_t py)
+static void fb_draw_glyph(char c, uint32_t px, uint32_t py)
 {
 	uint8_t ch = (uint8_t)c;
 	uint32_t y, x;
@@ -115,12 +115,12 @@ static void draw_glyph(char c, uint32_t px, uint32_t py)
 		uint8_t row = font8x8_basic[ch][y];
 		for (x = 0; x < GLYPH_W; x++) {
 			uint32_t color = (row & (1 << x)) ? fb.fg : fb.bg;
-			put_pixel(px + x, py + y, color);
+			fb_put_pixel(px + x, py + y, color);
 		}
 	}
 }
 
-static void scroll_up(void)
+static void fb_scroll_up(void)
 {
 	uint32_t y, x;
 	uint32_t text_h = fb.rows * GLYPH_H;
@@ -135,15 +135,15 @@ static void scroll_up(void)
 			dst[x] = src[x];
 	}
 
-	fill_rect(0, text_h - GLYPH_H, fb.width, GLYPH_H, fb.bg);
+	fb_fill_rect(0, text_h - GLYPH_H, fb.width, GLYPH_H, fb.bg);
 }
 
-static void newline(void)
+static void fb_newline(void)
 {
 	fb.cx = 0;
 	fb.cy++;
 	if (fb.cy >= fb.rows) {
-		scroll_up();
+		fb_scroll_up();
 		fb.cy = fb.rows - 1;
 	}
 }
@@ -227,14 +227,22 @@ static void fb_backspace(void)
 {
 	if (fb.cx > 0)
 		fb.cx--;
-	draw_glyph(' ', cursor_px(), cursor_py());
+	fb_draw_glyph(' ', fb_cursor_px(), fb_cursor_py());
+}
+
+static void fb_put_printable(char c)
+{
+	fb_draw_glyph(c, fb_cursor_px(), fb_cursor_py());
+	fb.cx++;
+	if (fb.cx >= fb.cols)
+		fb_newline();
 }
 
 static void fb_putchar(char c)
 {
 	switch (c) {
 	case '\n':
-		newline();
+		fb_newline();
 		return;
 	case '\r':
 		fb.cx = 0;
@@ -246,10 +254,7 @@ static void fb_putchar(char c)
 		break;
 	}
 
-	draw_glyph(c, cursor_px(), cursor_py());
-	fb.cx++;
-	if (fb.cx >= fb.cols)
-		newline();
+	fb_put_printable(c);
 }
 
 static void output_putchar(char c)
@@ -277,7 +282,7 @@ void console_clear(void)
 		output_fallback_write("\n");
 		return;
 	}
-	fill_rect(0, 0, fb.width, fb.height, fb.bg);
+	fb_fill_rect(0, 0, fb.width, fb.height, fb.bg);
 	fb.cx = 0;
 	fb.cy = 0;
 }
