@@ -1,6 +1,10 @@
 #ifndef _ISTATE_H_
 #define _ISTATE_H_
 
+/*
+ * Full interrupt frame layout for future C-level exception handlers.
+ * Not linked in the current build; exceptions.S uses a smaller volatile frame.
+ */
 #include <lib/typedefs.h>
 
 #define ISTATE_OFFSET_SP_FRAME 0

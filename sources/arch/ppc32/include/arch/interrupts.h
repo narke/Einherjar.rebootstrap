@@ -28,7 +28,12 @@
 
 #pragma once
 
-#include <arch/istate.h>
+/*
+ * Interrupt/decrementer API for future native IRQ support.
+ * Not used by the current OFW-based build (see Makefile).
+ * For full CPU state layout, include <arch/istate.h> explicitly.
+ */
+#include <lib/typedefs.h>
 
 #define IVT_ITEMS  16
 #define IVT_FIRST  0

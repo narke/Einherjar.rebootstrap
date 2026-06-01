@@ -7,6 +7,10 @@
 
 #pragma once
 
+/*
+ * IRQ helper types for future PIC drivers.
+ * Not used by the current OFW-based build.
+ */
 #include <lib/typedefs.h>
 
 /** Type for function used to clear the interrupt. */

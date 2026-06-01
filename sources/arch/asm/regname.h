@@ -7,7 +7,14 @@
 
 #pragma once
 
-/* Condition Register Bit Fields */
+/*
+ * PowerPC register names for assembly (boot.S, exceptions.S).
+ * Values must stay stable; unused aliases are kept for future MMU/FPU work.
+ */
+
+/* --- Used by current assembly (boot.S, exceptions.S) --- */
+
+/* Condition Register bit fields */
 #define cr0  0
 #define cr1  1
 #define cr2  2
@@ -51,8 +58,19 @@
 #define r30  30
 #define r31  31
 
-/* GPR Aliases */
+/* GPR aliases */
 #define sp  1
+
+/* SPRs referenced by current exception/bootstrap code */
+#define xer      1
+#define lr       8
+#define ctr      9
+#define srr0     26
+#define srr1     27
+#define sprg0    272
+#define sprg1    273
+
+/* --- Reserved for future MMU / FPU / vector work --- */
 
 /* Floating Point Registers (FPRs) */
 #define fr0   0
@@ -154,16 +172,9 @@
 #define evr30  30
 #define evr31  31
 
-/* Special Purpose Registers (SPRs) */
-#define xer      1
-#define lr       8
-#define ctr      9
+/* Additional SPRs */
 #define dec      22
 #define sdr1     25
-#define srr0     26
-#define srr1     27
-#define sprg0    272
-#define sprg1    273
 #define sprg2    274
 #define sprg3    275
 #define prv      287
