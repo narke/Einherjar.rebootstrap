@@ -7,6 +7,8 @@
 
 #include <arch/asm/regname.h>
 
+#define KERNEL_STACK_SIZE  16384
+
 .global start
 .global halt
 
@@ -34,5 +36,5 @@ halt:
 .data
 .align 12
 kernel_stack_bottom:
-	.space 16384
+	.space KERNEL_STACK_SIZE
 kernel_stack:
