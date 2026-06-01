@@ -9,6 +9,10 @@
 
 #include "common.h"
 
+/*
+ * Machine-level types for 32-bit PowerPC freestanding builds.
+ * size_t and uintptr_t are 32-bit; do not assume LP64.
+ */
 typedef uint32_t size_t;
 typedef uint32_t uintptr_t;
 typedef uint32_t ipl_t;

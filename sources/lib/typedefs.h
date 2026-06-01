@@ -7,6 +7,10 @@
 
 #pragma once
 
+/*
+ * Convenience typedefs and constants built on common.h + types.h.
+ * Include this header for bool, NULL, inr_t, and machine types.
+ */
 #include "common.h"
 #include "types.h"
 
@@ -17,4 +21,3 @@
 
 typedef uint8_t bool;
 typedef int32_t inr_t;
-typedef uint32_t uintptr_t;

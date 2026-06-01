@@ -7,4 +7,8 @@
 
 #pragma once
 
+/*
+ * ASSERT is intentionally a no-op in the current freestanding kernel.
+ * Enable a real implementation when a debug output path exists.
+ */
 #define ASSERT(expr)

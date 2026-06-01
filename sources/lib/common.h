@@ -1,3 +1,6 @@
+/*
+ * Freestanding integer types for Einherjar (no stdint.h / -nostdinc).
+ */
 #pragma once
 
 typedef unsigned char		uint8_t;

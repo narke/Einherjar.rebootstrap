@@ -7,6 +7,12 @@
 
 #pragma once
 
+/*
+ * Bit-position helpers for future PIC/priority code.
+ * Requires __32_BITS__ or __64_BITS__ to define fnzb(); not used in current build.
+ */
+#include <lib/typedefs.h>
+
 #ifdef __32_BITS__
 	#define fnzb(arg)  fnzb32(arg)
 #endif
