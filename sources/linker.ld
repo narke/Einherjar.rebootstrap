@@ -4,8 +4,6 @@ SECTIONS {
 	. = 0x01000000;
 	.text : {
 		*(BOOTSTRAP);
-		*(REALMODE);
-		*(.vectors);
 		*(.text);
 	}
 	.data : {
@@ -18,7 +16,6 @@ SECTIONS {
 		*(.scommon);
 		*(.bss);        /* uninitialized static variables */
 		*(COMMON);      /* global variables */
-[[COMPONENTS]]
 	}
 
 	/DISCARD/ : {

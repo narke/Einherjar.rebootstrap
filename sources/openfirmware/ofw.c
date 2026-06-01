@@ -11,90 +11,38 @@
 #include <lib/halt.h>
 #include "ofw.h"
 
-#define RED(i)    (((i) >> 5) & ((1 << 3) - 1))
-#define GREEN(i)  (((i) >> 3) & ((1 << 2) - 1))
-#define BLUE(i)   ((i) & ((1 << 3) - 1))
-#define CLIP(i)   ((i) <= 255 ? (i) : 255)
-
 typedef int (*ofw_entry_t)(ofw_args_t *args);
 
 uintptr_t ofw_cif;
 phandle ofw_chosen;
 ihandle ofw_stdout;
 ihandle ofw_stdin;
-phandle ofw_root;
-ihandle ofw_mmu;
-ihandle ofw_memory_prop;
-phandle ofw_memory;
 
 /** Non-zero when OFW client interface is being called (prevents reentrant calls). */
 volatile uint32_t ofw_busy;
-
 
 void
 ofw_init(void)
 {
 	ofw_chosen = ofw_find_device("/chosen");
-	if (ofw_chosen == (phandle) -1)
+	if (ofw_chosen == (phandle)-1)
 		halt();
 
-	if ((ofw_ret_t) ofw_get_property(ofw_chosen, "stdout", &ofw_stdout,
-				sizeof(ofw_stdout)) <= 0)
+	if ((ofw_ret_t)ofw_get_property(ofw_chosen, "stdout", &ofw_stdout,
+	    sizeof(ofw_stdout)) <= 0)
 		ofw_stdout = 0;
 
-	if ((ofw_ret_t) ofw_get_property(ofw_chosen, "stdin", &ofw_stdin,
-				sizeof(ofw_stdin)) <= 0)
+	if ((ofw_ret_t)ofw_get_property(ofw_chosen, "stdin", &ofw_stdin,
+	    sizeof(ofw_stdin)) <= 0)
 		ofw_stdin = 0;
-
-	ofw_root = ofw_find_device("/");
-	if (ofw_root == (phandle) -1)
-	{
-		printf("Error: Unable to find / device, halting.\n");
-		halt();
-	}
-
-	if ((ofw_ret_t) ofw_get_property(ofw_chosen, "mmu", &ofw_mmu,
-				sizeof(ofw_mmu)) <= 0)
-	{
-		printf("Error: Unable to get mmu property, halting.\n");
-		halt();
-	}
-	if ((ofw_ret_t) ofw_get_property(ofw_chosen, "memory", &ofw_memory_prop,
-				sizeof(ofw_memory_prop)) <= 0)
-	{
-		printf("Error: Unable to get memory property, halting.\n");
-		halt();
-	}
-
-	ofw_memory = ofw_find_device("/memory");
-	if (ofw_memory == (phandle) -1)
-	{
-		printf("Error: Unable to find /memory device, halting.\n");
-		halt();
-	}
 }
 
-
-/*
- * Perform a call to OpenFirmware client interface.
- *
- * Args:
- * service String identifying the service requested.
- * nargs   Number of input arguments.
- * nret    Number of output arguments. This includes the return value.
- * rets    Buffer for output arguments or NULL. The buffer must accommodate
- *             nret - 1 items.
- *
- * Return:
- * Return value returned by the client interface.
- *
- */
 ofw_arg_t
-ofw_call(const char *service, const size_t nargs,
-		const size_t nret, ofw_arg_t *rets, ...)
+ofw_call(const char *service, const size_t nargs, const size_t nret,
+    ofw_arg_t *rets, ...)
 {
 	ofw_args_t args;
-	args.service = (ofw_arg_t) service;
+	args.service = (ofw_arg_t)service;
 	args.nargs = nargs;
 	args.nret = nret;
 
@@ -110,7 +58,7 @@ ofw_call(const char *service, const size_t nargs,
 	for (i = 0; i < nret; i++)
 		args.args[i + nargs] = 0;
 
-	(void) ofw(&args);
+	(void)ofw(&args);
 
 	for (i = 1; i < nret; i++)
 		rets[i - 1] = args.args[i + nargs];
@@ -118,21 +66,18 @@ ofw_call(const char *service, const size_t nargs,
 	return args.args[nargs];
 }
 
-
 phandle
 ofw_find_device(const char *name)
 {
-	return (phandle) ofw_call("finddevice", 1, 1, NULL, name);
+	return (phandle)ofw_call("finddevice", 1, 1, NULL, name);
 }
-
 
 ofw_arg_t
 ofw_get_property(const phandle device, const char *name, void *buf,
-		const size_t buflen)
+    const size_t buflen)
 {
 	return ofw_call("getprop", 4, 1, NULL, device, name, buf, buflen);
 }
-
 
 void
 ofw_putchar(const char ch)
@@ -144,42 +89,10 @@ ofw_putchar(const char ch)
 }
 
 int
-ofw_call_method0(const char *method, ihandle instance)
-{
-	if (instance == 0)
-		return -1;
-	return (int)ofw_call("call-method", 2, 1, NULL, method, instance);
-}
-
-int
-ofw_call_method1(const char *method, ihandle instance, ofw_arg_t arg0)
-{
-	if (instance == 0)
-		return -1;
-	return (int)ofw_call("call-method", 3, 1, NULL, method, instance, arg0);
-}
-
-int
-ofw_call_method2(const char *method, ihandle instance, ofw_arg_t arg0,
-    ofw_arg_t arg1)
-{
-	if (instance == 0)
-		return -1;
-	return (int)ofw_call("call-method", 4, 1, NULL, method, instance, arg0,
-	    arg1);
-}
-
-
-int
 ofw_getchar(void)
 {
 	char ch;
 
-	/*
-	 * If stdin is not available, or OFW is already being called
-	 * (e.g. we're in a timer interrupt while printf is in progress),
-	 * return immediately to avoid reentrancy issues.
-	 */
 	if (ofw_stdin == 0 || ofw_busy)
 		return -1;
 
@@ -191,17 +104,11 @@ ofw_getchar(void)
 	return -1;
 }
 
-
 ofw_arg_t
 ofw(ofw_args_t *args)
 {
 	ofw_arg_t ret;
 
-	/*
-	 * Disable interrupts around OFW calls.  OFW is not reentrant:
-	 * if our exception handler fires during an OFW call it could
-	 * corrupt OFW's internal state.
-	 */
 	ipl_t ipl = interrupts_disable();
 	ofw_busy = 1;
 	ret = ((ofw_entry_t)ofw_cif)(args);
@@ -210,4 +117,3 @@ ofw(ofw_args_t *args)
 
 	return ret;
 }
-

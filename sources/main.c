@@ -5,10 +5,6 @@
  * found in the LICENSE file.
  */
 
-#include <arch/asm.h>
-#include <arch/interrupts.h>
-#include <arch/msr.h>
-#include <lib/printf.h>
 #include <lib/types.h>
 #include <drivers/console.h>
 #include <openfirmware/ofw.h>
