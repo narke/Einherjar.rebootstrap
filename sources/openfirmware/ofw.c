@@ -50,6 +50,34 @@ ofw_call_collect_returns(ofw_args_t *args, const size_t nargs, const size_t nret
 		rets[i - 1] = args->args[i + nargs];
 }
 
+static ipl_t
+ofw_critical_enter(void)
+{
+	ipl_t ipl = interrupts_disable();
+
+	ofw_busy = 1;
+	return ipl;
+}
+
+static void
+ofw_critical_exit(ipl_t ipl)
+{
+	ofw_busy = 0;
+	interrupts_restore(ipl);
+}
+
+static bool
+ofw_stdout_ready(void)
+{
+	return ofw_stdout != 0;
+}
+
+static bool
+ofw_stdin_ready(void)
+{
+	return ofw_stdin != 0 && ofw_busy == 0;
+}
+
 static ihandle
 ofw_chosen_ihandle(const char *property)
 {
@@ -60,6 +88,18 @@ ofw_chosen_ihandle(const char *property)
 		return 0;
 
 	return handle;
+}
+
+static void
+ofw_stdout_write_char(const char ch)
+{
+	ofw_call("write", 3, 1, NULL, ofw_stdout, &ch, 1);
+}
+
+static ofw_arg_t
+ofw_stdin_read_char(char *ch)
+{
+	return ofw_call("read", 3, 1, NULL, ofw_stdin, ch, 1);
 }
 
 void
@@ -113,10 +153,10 @@ ofw_get_property(const phandle device, const char *name, void *buf,
 void
 ofw_putchar(const char ch)
 {
-	if (ofw_stdout == 0)
+	if (!ofw_stdout_ready())
 		return;
 
-	ofw_call("write", 3, 1, NULL, ofw_stdout, &ch, 1);
+	ofw_stdout_write_char(ch);
 }
 
 int
@@ -125,10 +165,10 @@ ofw_getchar(void)
 	char ch;
 	ofw_arg_t actual;
 
-	if (ofw_stdin == 0 || ofw_busy)
+	if (!ofw_stdin_ready())
 		return -1;
 
-	actual = ofw_call("read", 3, 1, NULL, ofw_stdin, &ch, 1);
+	actual = ofw_stdin_read_char(&ch);
 
 	if ((int)actual > 0)
 		return (unsigned char)ch;
@@ -142,11 +182,9 @@ ofw(ofw_args_t *args)
 	ofw_arg_t ret;
 	ipl_t ipl;
 
-	ipl = interrupts_disable();
-	ofw_busy = 1;
+	ipl = ofw_critical_enter();
 	ret = ((ofw_entry_t)ofw_cif)(args);
-	ofw_busy = 0;
-	interrupts_restore(ipl);
+	ofw_critical_exit(ipl);
 
 	return ret;
 }
