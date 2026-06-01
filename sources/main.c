@@ -11,6 +11,24 @@
 
 void einherjar(void);
 
+static void
+handle_input_char(int ch)
+{
+	if (ch == '\r' || ch == '\n') {
+		console_puts("\n> ");
+		return;
+	}
+
+	if (ch == 0x7f || ch == '\b') {
+		console_putchar('\b');
+		console_putchar(' ');
+		console_putchar('\b');
+		return;
+	}
+
+	console_putchar((char)ch);
+}
+
 void
 einherjar(void)
 {
@@ -42,14 +60,6 @@ einherjar(void)
 		if (ch < 0)
 			continue;
 
-		if (ch == '\r' || ch == '\n') {
-			console_puts("\n> ");
-		} else if (ch == 0x7f || ch == '\b') {
-			console_putchar('\b');
-			console_putchar(' ');
-			console_putchar('\b');
-		} else {
-			console_putchar((char)ch);
-		}
+		handle_input_char(ch);
 	}
 }

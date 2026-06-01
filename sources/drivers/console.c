@@ -175,10 +175,22 @@ static bool fb_detect(void)
 	return fb.ready;
 }
 
+static void fallback_putchar(char c)
+{
+	ofw_putchar(c);
+}
+
 static void fallback_write(const char *s)
 {
 	while (*s)
-		ofw_putchar(*s++);
+		fallback_putchar(*s++);
+}
+
+static void fb_backspace(void)
+{
+	if (fb.cx > 0)
+		fb.cx--;
+	draw_glyph(' ', fb.cx * GLYPH_W, fb.cy * GLYPH_H);
 }
 
 void console_clear(void)
@@ -212,25 +224,22 @@ void console_puts(const char *s)
 void console_putchar(char c)
 {
 	if (!fb.ready) {
-		ofw_putchar(c);
+		fallback_putchar(c);
 		return;
 	}
 
-	if (c == '\n') {
+	switch (c) {
+	case '\n':
 		newline();
 		return;
-	}
-
-	if (c == '\r') {
+	case '\r':
 		fb.cx = 0;
 		return;
-	}
-
-	if (c == '\b') {
-		if (fb.cx > 0)
-			fb.cx--;
-		draw_glyph(' ', fb.cx * GLYPH_W, fb.cy * GLYPH_H);
+	case '\b':
+		fb_backspace();
 		return;
+	default:
+		break;
 	}
 
 	draw_glyph(c, fb.cx * GLYPH_W, fb.cy * GLYPH_H);
