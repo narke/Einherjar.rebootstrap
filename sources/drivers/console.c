@@ -212,15 +212,15 @@ static bool fb_detect(void)
 	return fb.ready;
 }
 
-static void fallback_putchar(char c)
+static void output_fallback_putchar(char c)
 {
 	ofw_putchar(c);
 }
 
-static void fallback_write(const char *s)
+static void output_fallback_write(const char *s)
 {
 	while (*s)
-		fallback_putchar(*s++);
+		output_fallback_putchar(*s++);
 }
 
 static void fb_backspace(void)
@@ -230,41 +230,8 @@ static void fb_backspace(void)
 	draw_glyph(' ', cursor_px(), cursor_py());
 }
 
-void console_clear(void)
+static void fb_putchar(char c)
 {
-	if (!fb.ready) {
-		fallback_write("\n");
-		return;
-	}
-	fill_rect(0, 0, fb.width, fb.height, fb.bg);
-	fb.cx = 0;
-	fb.cy = 0;
-}
-
-void console_init(void)
-{
-	fb.ready = false;
-	if (fb_detect())
-		console_clear();
-}
-
-void console_puts(const char *s)
-{
-	if (!fb.ready) {
-		fallback_write(s);
-		return;
-	}
-	while (*s)
-		console_putchar(*s++);
-}
-
-void console_putchar(char c)
-{
-	if (!fb.ready) {
-		fallback_putchar(c);
-		return;
-	}
-
 	switch (c) {
 	case '\n':
 		newline();
@@ -283,4 +250,51 @@ void console_putchar(char c)
 	fb.cx++;
 	if (fb.cx >= fb.cols)
 		newline();
+}
+
+static void output_putchar(char c)
+{
+	if (!fb.ready)
+		output_fallback_putchar(c);
+	else
+		fb_putchar(c);
+}
+
+static void output_write(const char *s)
+{
+	if (!fb.ready) {
+		output_fallback_write(s);
+		return;
+	}
+
+	while (*s)
+		fb_putchar(*s++);
+}
+
+void console_clear(void)
+{
+	if (!fb.ready) {
+		output_fallback_write("\n");
+		return;
+	}
+	fill_rect(0, 0, fb.width, fb.height, fb.bg);
+	fb.cx = 0;
+	fb.cy = 0;
+}
+
+void console_init(void)
+{
+	fb.ready = false;
+	if (fb_detect())
+		console_clear();
+}
+
+void console_puts(const char *s)
+{
+	output_write(s);
+}
+
+void console_putchar(char c)
+{
+	output_putchar(c);
 }

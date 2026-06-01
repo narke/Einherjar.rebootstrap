@@ -12,17 +12,41 @@
 void einherjar(void);
 
 static void
+show_prompt(void)
+{
+	console_puts("\n> ");
+}
+
+static void
+show_prompt_line(void)
+{
+	console_puts("> ");
+}
+
+static void
+erase_char_on_screen(void)
+{
+	console_putchar('\b');
+	console_putchar(' ');
+	console_putchar('\b');
+}
+
+static int
+is_backspace(int ch)
+{
+	return ch == 0x7f || ch == '\b';
+}
+
+static void
 handle_input_char(int ch)
 {
 	if (ch == '\r' || ch == '\n') {
-		console_puts("\n> ");
+		show_prompt();
 		return;
 	}
 
-	if (ch == 0x7f || ch == '\b') {
-		console_putchar('\b');
-		console_putchar(' ');
-		console_putchar('\b');
+	if (is_backspace(ch)) {
+		erase_char_on_screen();
 		return;
 	}
 
@@ -46,7 +70,7 @@ einherjar(void)
 	 */
 
 	console_puts("Einherjar kernel ready.\n");
-	console_puts("> ");
+	show_prompt_line();
 
 	/*
 	 * Main loop: poll the keyboard via Open Firmware stdin.
